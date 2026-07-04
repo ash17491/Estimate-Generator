@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiv Shakti Enterprises — Estimate Generator</title>
+<style>
+  :root{
+    --ink:#1c2430; --paper:#ffffff; --bg:#232a35; --bg2:#2c3442;
+    --amber:#e8960c; --amber-dark:#b57206; --line:#d8dce2; --muted:#7a8494;
+    --field:#f4f6f8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+  }
+  .app{display:flex; min-height:100vh; gap:0;}
+
+  /* ---------- Editor panel ---------- */
+  .editor{
+    width:430px; min-width:340px; background:var(--bg2); color:#e8ebf0;
+    padding:22px 20px 60px; overflow-y:auto; height:100vh; position:sticky; top:0;
+    border-right:3px solid var(--amber);
+  }
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:4px;}
+  .brand .sun{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffd57a,var(--amber));box-shadow:0 0 14px rgba(232,150,12,.55);flex:none;}
+  .brand h1{font-size:16px; font-weight:700; letter-spacing:.4px;}
+  .brand p{font-size:11px; color:#9aa4b2;}
+  .section{margin-top:20px;}
+  .section > h2{
+    font-size:11px; text-transform:uppercase; letter-spacing:1.4px;
+    color:var(--amber); margin-bottom:10px; font-weight:700;
+    border-bottom:1px solid #3a4352; padding-bottom:5px;
+  }
+  label{display:block; font-size:11px; color:#9aa4b2; margin:8px 0 3px;}
+  input[type=text], input[type=number], input[type=date], textarea, select{
+    width:100%; padding:7px 9px; border:1px solid #47506078; border-radius:6px;
+    background:#1d232e; color:#eef1f5; font-size:13px; font-family:inherit;
+  }
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--amber); outline-offset:1px;}
+  textarea{resize:vertical; min-height:52px;}
+  .row2{display:flex; gap:8px;} .row2>div{flex:1;}
+  .row3{display:flex; gap:8px;} .row3>div{flex:1;}
+
+  .item-card{
+    background:#1d232e; border:1px solid #3a4352; border-radius:8px;
+    padding:10px; margin-bottom:10px; position:relative;
+  }
+  .item-card .del{
+    position:absolute; top:8px; right:8px; background:none; border:none;
+    color:#8b93a1; cursor:pointer; font-size:15px; line-height:1; padding:2px 5px; border-radius:4px;
+  }
+  .item-card .del:hover{color:#ff7b6b; background:#2a3140;}
+  .item-line-total{font-size:11px; color:var(--amber); margin-top:6px; text-align:right; font-variant-numeric:tabular-nums;}
+
+  .btn{
+    display:inline-block; border:none; border-radius:7px; cursor:pointer;
+    font-size:13px; font-weight:600; padding:9px 14px; font-family:inherit;
+  }
+  .btn-ghost{background:transparent; color:var(--amber); border:1px dashed var(--amber); width:100%;}
+  .btn-ghost:hover{background:rgba(232,150,12,.12);}
+  .btn-pdf{
+    background:var(--amber); color:#241a05; width:100%; font-size:14px; padding:12px;
+    margin-top:18px; box-shadow:0 4px 14px rgba(232,150,12,.35);
+  }
+  .btn-pdf:hover{background:#f5a41e;}
+  .hint{font-size:11px; color:#8b93a1; margin-top:8px; line-height:1.5;}
+
+  .totals-live{
+    margin-top:14px; background:#1d232e; border:1px solid #3a4352; border-radius:8px; padding:10px 12px;
+    font-size:13px;
+  }
+  .totals-live div{display:flex; justify-content:space-between; padding:3px 0; font-variant-numeric:tabular-nums;}
+  .totals-live .grand{border-top:1px solid #3a4352; margin-top:4px; padding-top:7px; font-weight:700; color:var(--amber); font-size:15px;}
+
+  .toggle-wrap{display:flex; gap:8px; align-items:center; margin-top:8px;}
+  .toggle-wrap label{margin:0;}
+  .radio-line{display:flex; gap:14px; margin-top:4px;}
+  .radio-line label{display:flex; gap:5px; align-items:center; font-size:12px; color:#cfd5dd; margin:0; cursor:pointer;}
+
+  /* ---------- Preview ---------- */
+  .preview-area{flex:1; padding:34px 30px; display:flex; justify-content:center; align-items:flex-start; overflow-y:auto; height:100vh;}
+  .sheet{
+    width:210mm; min-height:297mm; background:var(--paper); color:#111;
+    padding:14mm 13mm 12mm; box-shadow:0 10px 40px rgba(0,0,0,.5);
+    font-family:Georgia,"Times New Roman",serif; font-size:12.5px; position:relative;
+  }
+  .sheet .accent-bar{height:5px; background:linear-gradient(90deg,var(--amber),#ffce6b); margin:-14mm -13mm 12px; }
+
+  .doc-topline{display:flex; justify-content:space-between; font-size:11.5px; font-weight:bold;}
+  .doc-name{text-align:center; font-size:21px; font-weight:bold; letter-spacing:.5px; margin-top:6px; text-transform:uppercase;}
+  .doc-addr{text-align:center; font-size:11.5px; margin-top:2px; color:#333;}
+  .doc-title{
+    text-align:center; margin:12px auto 0; font-size:13px; font-weight:bold; letter-spacing:3px;
+    border-top:1.5px solid #111; border-bottom:1.5px solid #111; padding:4px 0; width:100%;
+  }
+
+  .meta{display:flex; justify-content:space-between; margin-top:12px; font-size:12px; gap:20px;}
+  .meta .left b, .meta .right b{display:inline-block; min-width:88px;}
+  .meta .right{text-align:right;}
+
+  table.items{width:100%; border-collapse:collapse; margin-top:12px;}
+  table.items th, table.items td{border:1px solid #444; padding:6px 7px; vertical-align:top;}
+  table.items th{background:#f0eee8; font-size:11.5px;}
+  table.items td.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  table.items td.ctr{text-align:center;}
+  table.items tr.total-row td{font-weight:bold; background:#f7f5ef;}
+
+  .subtotal-line{text-align:right; margin-top:8px; font-size:12.5px;}
+  .subtotal-line b{margin-left:14px;}
+
+  h4.taxhead{margin:14px 0 5px; font-size:12.5px;}
+  table.tax{width:100%; border-collapse:collapse;}
+  table.tax th, table.tax td{border:1px solid #444; padding:5px 7px; font-size:11.5px; text-align:center;}
+  table.tax th{background:#f0eee8;}
+  table.tax td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.tax tr.total-row td{font-weight:bold; background:#f7f5ef;}
+
+  .words{margin-top:12px; font-size:12.5px;}
+  .thanks{
+    text-align:center; margin-top:26px; font-size:13px; font-style:italic; color:#333;
+    border-top:1px solid #ccc; padding-top:10px;
+  }
+  .sig .tnc{font-size:10px; color:#555; margin-top:6px; font-style:italic;}
+  .footer-flex{display:flex; justify-content:space-between; margin-top:22px; font-size:12px; gap:20px;}
+  .footer-flex .sig{text-align:right; display:flex; flex-direction:column; justify-content:space-between; min-height:80px;}
+  .footer-flex .sig .line{margin-top:46px; border-top:1px solid #111; padding-top:3px; font-weight:bold;}
+
+  /* ---------- Print ---------- */
+  @media print{
+    @page{size:A4; margin:0;}
+    body{background:#fff;}
+    .editor{display:none !important;}
+    .preview-area{padding:0; height:auto; overflow:visible;}
+    .sheet{box-shadow:none; width:100%; min-height:auto; padding:14mm 13mm;}
+    .sheet .accent-bar{margin:-14mm -13mm 12px;}
+  }
+  @media (max-width:900px){
+    .app{flex-direction:column;}
+    .editor{width:100%; height:auto; position:static; max-height:none;}
+    .preview-area{height:auto; padding:16px 6px;}
+    .sheet{width:100%; min-height:auto; padding:10mm 8mm;}
+    .sheet .accent-bar{margin:-10mm -8mm 10px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= EDITOR ================= -->
+  <div class="editor">
+    <div class="brand">
+      <div class="sun"></div>
+      <div>
+        <h1>Estimate Generator</h1>
+        <p>M/S Shiv Shakti Enterprises · Udhampur</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Client</h2>
+      <label>Client name</label>
+      <input type="text" id="custName" value="Jugal Kishore Sharma">
+      <label>Client address</label>
+      <textarea id="custAddr">R/o Gole Mela, Udhampur, Jammu &amp; Kashmir, Pincode - 182101</textarea>
+      <div class="row2">
+        <div>
+          <label>Estimate no.</label>
+          <input type="text" id="estNo" value="EST-001">
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" id="estDate">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>GST</h2>
+      <div class="row2">
+        <div>
+          <label>GST rate</label>
+          <select id="gstRate">
+            <option value="0.05" selected>5% (CGST 2.5% + SGST 2.5%)</option>
+            <option value="0.12">12% (CGST 6% + SGST 6%)</option>
+            <option value="0.18">18% (CGST 9% + SGST 9%)</option>
+            <option value="0">0% (Exempt)</option>
+          </select>
+        </div>
+      </div>
+      <label style="margin-top:10px;">Prices entered are</label>
+      <div class="radio-line">
+        <label><input type="radio" name="taxmode" value="excl" checked> Exclusive of GST</label>
+        <label><input type="radio" name="taxmode" value="incl"> Inclusive of GST</label>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Items</h2>
+      <div id="itemsContainer"></div>
+      <button class="btn btn-ghost" onclick="addItem()">+ Add item</button>
+    </div>
+
+    <div class="section">
+      <h2>Live totals</h2>
+      <div class="totals-live">
+        <div><span>Taxable value</span><span id="lvTaxable">—</span></div>
+        <div><span>CGST</span><span id="lvCgst">—</span></div>
+        <div><span>SGST</span><span id="lvSgst">—</span></div>
+        <div class="grand"><span>Estimate total</span><span id="lvTotal">—</span></div>
+      </div>
+      <div class="toggle-wrap" style="margin-top:12px;">
+        <input type="checkbox" id="roundOff" checked style="width:auto;">
+        <label for="roundOff" style="color:#cfd5dd; font-size:12px; cursor:pointer;">Round off grand total to nearest rupee</label>
+      </div>
+    </div>
+
+    <button class="btn btn-pdf" onclick="window.print()">Generate PDF for client</button>
+    <p class="hint">This opens your device's print dialog — choose <b>"Save as PDF"</b> as the destination. Only the estimate sheet prints; this editor panel is excluded automatically.</p>
+  </div>
+
+  <!-- ================= PREVIEW / PRINT SHEET ================= -->
+  <div class="preview-area">
+    <div class="sheet" id="sheet">
+      <div class="accent-bar"></div>
+      <div class="doc-topline">
+        <span>GSTIN : 01ADAFS2693G1ZB</span>
+        <span>Mob. No. 9796668331</span>
+      </div>
+      <div class="doc-name">M/S Shiv Shakti Enterprises Udhampur</div>
+      <div class="doc-addr">Gole Mela, Udhampur, Jammu &amp; Kashmir, Pincode – 182101</div>
+      <div class="doc-title">ESTIMATE</div>
+
+      <div class="meta">
+        <div class="left">
+          <div><b>Estimate For:</b> <span id="pCustName"></span></div>
+          <div><b>Address:</b> <span id="pCustAddr"></span></div>
+        </div>
+        <div class="right">
+          <div><b>Estimate No.:</b> <span id="pEstNo"></span></div>
+          <div><b>Date:</b> <span id="pEstDate"></span></div>
+        </div>
+      </div>
+
+      <table class="items">
+        <thead>
+          <tr>
+            <th style="width:4%;">#</th>
+            <th>Item name</th>
+            <th style="width:9%;">HSN/SAC</th>
+            <th style="width:6%;">Qty.</th>
+            <th style="width:7%;">Unit</th>
+            <th style="width:13%;">Price/unit (₹)</th>
+            <th style="width:11%;">GST (₹)</th>
+            <th style="width:14%;">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="pItemRows"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3" style="text-align:center;">Total</td>
+            <td class="ctr" id="pQtyTotal"></td>
+            <td></td><td></td>
+            <td class="num" id="pGstTotal"></td>
+            <td class="num" id="pAmtTotal"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="subtotal-line">Sub Total : <b id="pSubTotal"></b></div>
+      <div class="subtotal-line" id="pRoundLine" style="display:none;">Round Off : <b id="pRoundOff"></b></div>
+      <div class="subtotal-line" style="font-size:14px;">Grand Total : <b id="pGrandTotal"></b></div>
+
+      <h4 class="taxhead">Tax Summary:</h4>
+      <table class="tax">
+        <thead>
+          <tr>
+            <th>HSN/SAC</th><th>Taxable Amount (₹)</th>
+            <th>CGST Rate (%)</th><th>CGST Amt (₹)</th>
+            <th>SGST Rate (%)</th><th>SGST Amt (₹)</th>
+            <th>Total Tax (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="pTaxRows"></tbody>
+      </table>
+
+      <div class="words"><b>Estimate Amount in Words:</b> <span id="pWords"></span></div>
+
+      <div class="footer-flex">
+        <div>
+          <b>Bank Details:</b><br>
+          Name — M/S Shiv Shakti Enterprises Udhampur<br>
+          Account No — 0970010100000117<br>
+          IFSC Code — JAKA0INDUDH
+        </div>
+        <div class="sig">
+          <div><b>For M/S Shiv Shakti Enterprises Udhampur</b></div>
+          <div class="line">Authorised Signatory</div>
+          <div class="tnc">Terms &amp; conditions apply</div>
+        </div>
+      </div>
+
+      <div class="thanks">Thanks for doing business with us!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ------------ state ------------ */
+let items = [
+  {
+    desc: "3 KW Solar Power Generating System (DCR MONO-6, LA=1, COPPER COATED EARTHING RODS=3, PIT COVER=3, CHEMICAL BAGS 25KG=1, ACDB 32A=1, DCDB 1IN 1OUT=1, DC WIRE 4 SQ.MM 1 COIL WITH FULL INSTALLATION)",
+    hsn: "8541", qty: 1, unit: "Nos", price: 175750
+  }
+];
+
+/* ------------ helpers ------------ */
+const fmt = n => n.toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2});
+const r2 = n => Math.round(n * 100) / 100;
+
+function numberToWordsIndian(num){
+  const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  function two(n){ return n < 20 ? ones[n] : tens[Math.floor(n/10)] + (n%10 ? " " + ones[n%10] : ""); }
+  function three(n){
+    let s = "";
+    if (n > 99){ s += ones[Math.floor(n/100)] + " Hundred"; n %= 100; if(n) s += " "; }
+    if (n) s += two(n);
+    return s;
+  }
+  if (num === 0) return "Zero";
+  let parts = [];
+  const crore = Math.floor(num / 10000000); num %= 10000000;
+  const lakh  = Math.floor(num / 100000);   num %= 100000;
+  const thou  = Math.floor(num / 1000);     num %= 1000;
+  const rest  = num;
+  if (crore) parts.push(three(crore) + " Crore");
+  if (lakh)  parts.push(two(lakh)   + " Lakh");
+  if (thou)  parts.push(two(thou)   + " Thousand");
+  if (rest)  parts.push(three(rest));
+  return parts.join(" ");
+}
+function amountInWords(amount){
+  const rupees = Math.floor(amount);
+  const paise = Math.round((amount - rupees) * 100);
+  let s = numberToWordsIndian(rupees) + " Rupees";
+  if (paise > 0) s += " and " + numberToWordsIndian(paise) + " Paise";
+  return s + " Only";
+}
+
+/* ------------ editor rendering ------------ */
+function renderEditorItems(){
+  const c = document.getElementById("itemsContainer");
+  c.innerHTML = "";
+  items.forEach((it, i) => {
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.innerHTML = `
+      ${items.length > 1 ? `<button class="del" title="Remove item" onclick="removeItem(${i})">&#10005;</button>` : ""}
+      <label>Item description</label>
+      <textarea oninput="upd(${i},'desc',this.value)">${escapeHtml(it.desc)}</textarea>
+      <div class="row3">
+        <div><label>HSN/SAC</label><input type="text" value="${escapeHtml(it.hsn)}" oninput="upd(${i},'hsn',this.value)"></div>
+        <div><label>Qty</label><input type="number" min="0" step="1" value="${it.qty}" oninput="upd(${i},'qty',this.value)"></div>
+        <div><label>Unit</label><input type="text" value="${escapeHtml(it.unit)}" oninput="upd(${i},'unit',this.value)"></div>
+      </div>
+      <label>Price / unit (₹)</label>
+      <input type="number" min="0" step="any" value="${it.price}" oninput="upd(${i},'price',this.value)">
+      <div class="item-line-total" id="lineTotal${i}"></div>
+    `;
+    c.appendChild(card);
+  });
+}
+function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"); }
+
+window.upd = function(i, key, val){
+  if (key === "qty" || key === "price") items[i][key] = parseFloat(val) || 0;
+  else items[i][key] = val;
+  renderPreview();
+};
+window.addItem = function(){
+  items.push({desc:"", hsn:"8541", qty:1, unit:"Nos", price:0});
+  renderEditorItems(); renderPreview();
+};
+window.removeItem = function(i){
+  items.splice(i,1);
+  renderEditorItems(); renderPreview();
+};
+
+/* ------------ calculation + preview ------------ */
+function calc(){
+  const rate = parseFloat(document.getElementById("gstRate").value);
+  const inclusive = document.querySelector('input[name="taxmode"]:checked').value === "incl";
+  const rows = items.map(it => {
+    const gross = it.qty * it.price;
+    let taxable, gst;
+    if (inclusive){ taxable = r2(gross / (1 + rate)); gst = r2(gross - taxable); }
+    else { taxable = r2(gross); gst = r2(gross * rate); }
+    return {...it, taxable, gst, amount: r2(taxable + gst)};
+  });
+  const taxable = r2(rows.reduce((s,r)=>s+r.taxable,0));
+  const gst = r2(rows.reduce((s,r)=>s+r.gst,0));
+  const total = r2(taxable + gst);
+  return {rows, rate, taxable, gst, total};
+}
+
+function renderPreview(){
+  const {rows, rate, taxable, gst, total} = calc();
+  const doRound = document.getElementById("roundOff").checked;
+  const grand = doRound ? Math.round(total) : total;
+  const roundOff = r2(grand - total);
+
+  // meta
+  document.getElementById("pCustName").textContent = document.getElementById("custName").value;
+  document.getElementById("pCustAddr").textContent = document.getElementById("custAddr").value;
+  document.getElementById("pEstNo").textContent = document.getElementById("estNo").value;
+  const d = document.getElementById("estDate").value;
+  document.getElementById("pEstDate").textContent = d ? d.split("-").reverse().join("-") : "";
+
+  // item rows
+  const tb = document.getElementById("pItemRows");
+  tb.innerHTML = "";
+  rows.forEach((r,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="ctr">${i+1}</td>
+      <td>${escapeHtml(r.desc)}</td>
+      <td class="ctr">${escapeHtml(r.hsn)}</td>
+      <td class="ctr">${r.qty}</td>
+      <td class="ctr">${escapeHtml(r.unit)}</td>
+      <td class="num">${fmt(r.price)}</td>
+      <td class="num">${fmt(r.gst)}</td>
+      <td class="num">${fmt(r.amount)}</td>`;
+    tb.appendChild(tr);
+    const lt = document.getElementById("lineTotal"+i);
+    if (lt) lt.textContent = "Line total: ₹ " + fmt(r.amount);
+  });
+  document.getElementById("pQtyTotal").textContent = rows.reduce((s,r)=>s+r.qty,0);
+  document.getElementById("pGstTotal").textContent = fmt(gst);
+  document.getElementById("pAmtTotal").textContent = fmt(total);
+  document.getElementById("pSubTotal").textContent = "₹ " + fmt(total);
+  document.getElementById("pRoundLine").style.display = (doRound && roundOff !== 0) ? "block" : "none";
+  document.getElementById("pRoundOff").textContent = (roundOff >= 0 ? "+ " : "− ") + "₹ " + fmt(Math.abs(roundOff));
+  document.getElementById("pGrandTotal").textContent = "₹ " + fmt(grand);
+
+  // tax summary grouped by HSN
+  const groups = {};
+  rows.forEach(r=>{
+    const k = r.hsn || "—";
+    if(!groups[k]) groups[k] = {taxable:0, gst:0};
+    groups[k].taxable += r.taxable; groups[k].gst += r.gst;
+  });
+  const tt = document.getElementById("pTaxRows");
+  tt.innerHTML = "";
+  const half = (rate*100/2);
+  Object.entries(groups).forEach(([hsn,g])=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(hsn)}</td><td class="num">${fmt(r2(g.taxable))}</td>
+      <td>${half}</td><td class="num">${fmt(r2(g.gst/2))}</td>
+      <td>${half}</td><td class="num">${fmt(r2(g.gst/2))}</td>
+      <td class="num">${fmt(r2(g.gst))}</td>`;
+    tt.appendChild(tr);
+  });
+  const trTot = document.createElement("tr");
+  trTot.className = "total-row";
+  trTot.innerHTML = `<td>Total</td><td class="num">${fmt(taxable)}</td>
+    <td>${half}</td><td class="num">${fmt(r2(gst/2))}</td>
+    <td>${half}</td><td class="num">${fmt(r2(gst/2))}</td>
+    <td class="num">${fmt(gst)}</td>`;
+  tt.appendChild(trTot);
+
+  // words
+  document.getElementById("pWords").textContent = amountInWords(grand);
+
+  // live totals panel
+  document.getElementById("lvTaxable").textContent = "₹ " + fmt(taxable);
+  document.getElementById("lvCgst").textContent = "₹ " + fmt(r2(gst/2));
+  document.getElementById("lvSgst").textContent = "₹ " + fmt(r2(gst/2));
+  document.getElementById("lvTotal").textContent = "₹ " + fmt(grand);
+}
+
+/* ------------ wiring ------------ */
+["custName","custAddr","estNo","estDate","gstRate","roundOff"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", renderPreview);
+  document.getElementById(id).addEventListener("change", renderPreview);
+});
+document.querySelectorAll('input[name="taxmode"]').forEach(el=>el.addEventListener("change", renderPreview));
+
+// default date = today
+document.getElementById("estDate").value = new Date().toISOString().slice(0,10);
+
+renderEditorItems();
+renderPreview();
+</script>
+</body>
+</html>
