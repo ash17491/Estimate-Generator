@@ -5,6 +5,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shiv Shakti Enterprises — Estimate Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root{
     --ink:#1c2430; --paper:#ffffff; --bg:#232a35; --bg2:#2c3442;
@@ -86,7 +87,9 @@
   .sheet{
     width:210mm; min-height:297mm; background:var(--paper); color:#111;
     padding:14mm 13mm 12mm; box-shadow:0 10px 40px rgba(0,0,0,.5);
-    font-family:Georgia,"Times New Roman",serif; font-size:12.5px; position:relative;
+    font-family:Arial,Helvetica,"Segoe UI",sans-serif; font-size:12px; position:relative;
+    font-variant-numeric:lining-nums tabular-nums;
+    font-feature-settings:"lnum" 1, "tnum" 1;
   }
   .sheet .accent-bar{height:5px; background:linear-gradient(90deg,var(--amber),#ffce6b); margin:-14mm -13mm 12px; }
 
@@ -145,6 +148,9 @@
     .sheet{width:100%; min-height:auto; padding:10mm 8mm;}
     .sheet .accent-bar{margin:-10mm -8mm 10px;}
   }
+  /* forced desktop layout during direct PDF capture */
+  body.pdf-mode .sheet{width:210mm !important; min-height:297mm !important; padding:14mm 13mm 12mm !important; box-shadow:none !important;}
+  body.pdf-mode .sheet .accent-bar{margin:-14mm -13mm 12px !important;}
 </style>
 </head>
 <body>
@@ -218,8 +224,9 @@
       </div>
     </div>
 
-    <button class="btn btn-pdf" onclick="window.print()">Generate PDF for client</button>
-    <p class="hint">This opens your device's print dialog — choose <b>"Save as PDF"</b> as the destination. Only the estimate sheet prints; this editor panel is excluded automatically.</p>
+    <button class="btn btn-pdf" id="btnDownload" onclick="downloadPdf()">Download PDF for client</button>
+    <button class="btn btn-ghost" style="margin-top:10px;" onclick="window.print()">Print / Save via browser</button>
+    <p class="hint">"Download PDF" creates the file directly — clean, with no website address or date at the bottom. Works on phone and desktop. The print option is a fallback if you want to send to a physical printer.</p>
   </div>
 
   <!-- ================= PREVIEW / PRINT SHEET ================= -->
@@ -480,6 +487,31 @@ function renderPreview(){
   document.getElementById("lvSgst").textContent = "₹ " + fmt(r2(gst/2));
   document.getElementById("lvTotal").textContent = "₹ " + fmt(grand);
 }
+
+/* ------------ direct PDF download (no browser header/footer) ------------ */
+window.downloadPdf = async function(){
+  const btn = document.getElementById("btnDownload");
+  const oldLabel = btn.textContent;
+  btn.textContent = "Preparing PDF…"; btn.disabled = true;
+  document.body.classList.add("pdf-mode");
+  const estNo = (document.getElementById("estNo").value || "estimate").replace(/[^\w\-]+/g,"_");
+  const cust = (document.getElementById("custName").value || "client").replace(/[^\w\-]+/g,"_");
+  try{
+    await html2pdf().set({
+      margin: 0,
+      filename: "Estimate_" + estNo + "_" + cust + ".pdf",
+      image: {type: "jpeg", quality: 0.97},
+      html2canvas: {scale: 2, useCORS: true, windowWidth: 1050},
+      jsPDF: {unit: "mm", format: "a4", orientation: "portrait"},
+      pagebreak: {mode: ["css", "legacy"]}
+    }).from(document.getElementById("sheet")).save();
+  } catch(e){
+    alert("PDF generation failed — please use the Print / Save via browser button instead.");
+  } finally {
+    document.body.classList.remove("pdf-mode");
+    btn.textContent = oldLabel; btn.disabled = false;
+  }
+};
 
 /* ------------ wiring ------------ */
 ["custName","custAddr","estNo","estDate","gstRate","roundOff"].forEach(id=>{
